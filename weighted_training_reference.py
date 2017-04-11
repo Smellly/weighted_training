@@ -37,6 +37,9 @@ def weighted_training():
     imgid2num = loadData.loadPKL('data/imgid2num.pkl') #imgid(string type) -> index of vgg_feats_training
 
     lengthOfImgfs = len(img_fs)
+    import gc
+    del lengthOfImgfs
+    gc.collect()
     caption_weights = []
     maxlen = 0
 

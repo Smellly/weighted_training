@@ -26,7 +26,7 @@ def loadMAT(path, p = True):
         mat = h5py.File(path)
     # print 'mat keys:', mat.keys()
     name = mat.keys()[0]
-    print mat[name].shape
+    # print mat[name].shape
     return np.transpose(mat[name])
 
 def loadNPY(path, p = True):
