@@ -49,7 +49,7 @@ def weighted_training():
 
     lengthOfImgfs = len(img_fs)
     import gc
-    del lengthOfImgfs
+    del img_fs
     gc.collect()
     caption_weights = []
     maxlen = 0
