@@ -7,6 +7,7 @@ Reference: paper Reference Based LSTM for Image Captioning
     * structured tree distance use bleu3
 version 2
 '''
+import gc
 import numpy as np
 from nltk.translate.bleu_score import sentence_bleu as bleu
 from nltk.stem import WordNetLemmatizer
@@ -40,6 +41,9 @@ def weighted_training():
     wordDict = loadData.loadPKL('data/wordDict.pkl') # word -> imgid
     trainset = loadData.loadJSON('data/trainset.json')
     sigma = loadData.loadMAT('data/sigma_training.mat')
+    lengthOfImgfs = len(img_fs)
+    del img_fs
+    gc.collect()
     kde_matrix = loadData.loadMAT('data/kdeMatrix.mat')
     bow_array = loadData.loadNPY('data/bowArray.npy')
     imgid2num = loadData.loadPKL('data/imgid2num.pkl')
@@ -47,10 +51,6 @@ def weighted_training():
     if pT:
         import time
 
-    lengthOfImgfs = len(img_fs)
-    import gc
-    del img_fs
-    gc.collect()
     caption_weights = []
     maxlen = 0
 
