@@ -6,6 +6,7 @@ Reference: paper Reference Based LSTM for Image Captioning
     ∗ weighted training part
 version 2
 '''
+import gc
 from nltk.stem import WordNetLemmatizer
 try:
     import cPickle as pickle
@@ -14,6 +15,7 @@ except:
 import numpy as np
 from tqdm import tqdm
 import loadData
+import scipy.io as scio
 
 '''
 Input : 
@@ -29,25 +31,21 @@ def normalized(words):
     return new_words
 
 def weighted_training():
-    img_fs = loadData.loadNPY('data/vgg_feats_training.npy')  # vgg feats
+    # img_fs = loadData.loadNPY('data/vgg_feats_training.npy')  # vgg feats
     wordDict = loadData.loadPKL('data/wordDict.pkl') # word -> imgid
     trainset = loadData.loadJSON('data/trainset.json')
     sigma = loadData.loadMAT('data/sigma_training.mat')
     kde_matrix = loadData.loadMAT('data/kdeMatrix.mat')
     imgid2num = loadData.loadPKL('data/imgid2num.pkl') #imgid(string type) -> index of vgg_feats_training
 
-    lengthOfImgfs = len(img_fs)
-    import gc
-    del img_fs
-    gc.collect()
+    lengthOfImgfs = len(trainset)
     caption_weights = []
     maxlen = 0
 
     print 'lengthOfTrainset:',len(trainset)
-    print 'lengthOfImgfs:',lengthOfImgfs
 
     print 'computing weights...'
-    for imgid in tqdm(trainset):
+    for count,imgid in enumerate(tqdm(trainset)):
         for cap in trainset[imgid][0]['sentences']:
             gsi = set()
             maxlen = len(cap) if len(cap) > maxlen else maxlen
@@ -60,13 +58,22 @@ def weighted_training():
                 new_l.append(wi)
 
             caption_weights.append(normalized(new_l))
+	if count%int(len(trainset)/10) == 0:
+	    print 'saving',count
+	    with open('output/tmp_captionWeights'+str(count)+'.pkl', 'w') as f:
+		pickle.dump(caption_weights, f, True)
 
+    with open('output/captionWeights.pkl', 'w') as f:
+	pickle.dump(caption_weights, f, True)
     print 'transform to numpy array'
-    zeros = np.zeros([len(captions[:100]), maxlen])
+    zeros = np.zeros([len(trainset), maxlen])
     for i,c in enumerate(caption_weights):
         zeros[i] += np.hstack((c, np.array((maxlen - len(c))*[0])))
     print 'saving at output/weights_ref.npy', 
     np.save('output/weights_ref.npy', zeros)
+    del caption_weights
+    gc.collect()
+    scio.savemat('output/weights_ref.mat', {'weights':zeros})  
 
 if __name__ == '__main__':
     weighted_training()
