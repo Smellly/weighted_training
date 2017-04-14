@@ -3,3 +3,4 @@ data
 resourse
 depricated
 *.tar.gz
+tools/getsize.py

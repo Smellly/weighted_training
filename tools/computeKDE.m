@@ -1,6 +1,10 @@
-DistArrayStruct = load('data/mDistanceMatrix.mat');
-DistArray = DistArrayStruct.mDist;
-clear DistArrayStruct
+% DistArrayStruct = load('data/mDistanceMatrix.mat');
+mFeats = load('../data/cleanBowMatrix.mat');
+mFeats2 = mFeats.vgg_feats_training;
+mDist = pdist(mFeats2);
+eval(['save -v7.3 ../data/cleanDistanceMatrix.mat mDist']);
+% DistArray = DistArrayStruct.mDist;
+% clear DistArrayStruct
 sigmaStruct = load('data/sigma_training.mat')
 sigma = sigmaStruct.sigma
 kdeArray = exp(-DistArray/sigma*sigma);
