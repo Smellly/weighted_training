@@ -7,7 +7,6 @@ Reference: paper Reference Based LSTM for Image Captioning
 version 2
 '''
 import gc
-from nltk.stem import WordNetLemmatizer
 try:
     import cPickle as pickle
 except:
@@ -45,19 +44,26 @@ def weighted_training():
     print 'lengthOfTrainset:',len(trainset)
 
     print 'computing weights...'
+    savepoint = 8278
+    if savepoint > 0:
+        caption_weights = loadData.loadPKL(
+            'output/tmp_captionWeights'+str(savepoint)'.pkl')
     for count,imgid in enumerate(tqdm(trainset)):
+	if count < savepoint:
+	   continue
         for cap in trainset[imgid][0]['sentences']:
-            gsi = set()
             maxlen = len(cap) if len(cap) > maxlen else maxlen
             new_l = []
             for word in cap:
                 gsi = wordDict[word]
                 assert(len(gsi)>0)
-                wi = np.sum([kde_matrix[imgid2num[imgid]][imgid2num[imgjd]] for imgjd in gsi ])
+                wi = np.sum(
+		    [kde_matrix[imgid2num[imgid]][imgid2num[imgjd]] 
+			for imgjd in gsi ])
                 wi = np.divide(wi, len(gsi))
                 new_l.append(wi)
-
             caption_weights.append(normalized(new_l))
+
 	if count%int(len(trainset)/10) == 0:
 	    print 'saving',count
 	    with open('output/tmp_captionWeights'+str(count)+'.pkl', 'w') as f:
@@ -65,10 +71,12 @@ def weighted_training():
 
     with open('output/captionWeights.pkl', 'w') as f:
 	pickle.dump(caption_weights, f, True)
+
     print 'transform to numpy array'
-    zeros = np.zeros([len(trainset), maxlen])
+    zeros = np.zeros([len(caption_weights), maxlen])
     for i,c in enumerate(caption_weights):
         zeros[i] += np.hstack((c, np.array((maxlen - len(c))*[0])))
+
     print 'saving at output/weights_ref.npy', 
     np.save('output/weights_ref.npy', zeros)
     del caption_weights
